@@ -1,0 +1,7 @@
+<HTML>
+<HEAD><TITLE>
+<FONT SIZE="20"FACE="CONSTANTIA"COLOR="GREEN">
+Это заголовок нашей страницы
+</FONT>
+</TITLE></HEAD>
+</HTML>

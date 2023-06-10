@@ -1,0 +1,38 @@
+<html>
+<head>
+    <link rel="stylesheet" href="try-catch.css">
+</head>
+<body>
+    <div class="proga">
+        <p><input id="a"></p>
+        <p><input id="b"></p>
+        <button id="result">result</button>
+    </div>
+</body>
+<script>
+    document.querySelector("#result").onclick = function ()
+     {
+        let a = parseFloat(document.getElementById("a").value);
+        let b = parseFloat(document.getElementById("b").value);
+        var res = '';
+       
+        try 
+        {           
+            res = "finally res = "+(a - b * 7 + Math.sqrt(169)); // a - b * 7 + sqrt(169)
+            res = v;
+            alert(v);
+        //    if (a < b)
+            // {
+            //     alert(res);
+            // }              
+        }
+        catch (e)
+        {
+            // alert(e.name + " "+ e.message);
+            res = "Ошибка"+e.name;
+            alert(res);
+        }
+       
+    }
+</script>
+</html>

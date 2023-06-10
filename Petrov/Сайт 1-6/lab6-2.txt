@@ -1,0 +1,96 @@
+<HEAD><TITLE>Практическая 6 часть 2</TITLE></HEAD>
+<P><I>Структура программы на языке Pascal</I></P>
+<table border=2 width="40%">
+<tr>
+<td height="35" width="30%" bgcolor="lightgray"> <center> Раздел </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Оператор </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Значение </center> </td>
+</tr>
+<tr>
+<td height="35" width="30%" rowspan="7" valign="bottom"> <center> Описание данных </center> </td>
+<td width="50"> <left> Program </left> </td>
+<td width="50"> <left> Заголовок программы </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Label </left> </td>
+<td width="50"> <left> Метки </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Const </left> </td>
+<td width="50"> <left> Константы </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Type </left> </td>
+<td width="50"> <left> Типы </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Var </left> </td>
+<td width="50"> <left> Переменные </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Procedure </left> </td>
+<td width="50"> <left> Процедуры </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> Function </left> </td>
+<td width="50"> <left> Функции </left> </td>
+</tr>
+<tr>
+<td height="35" width="30%" rowspan="2" valign="bottom"> <center> Описание действий </center> </td>
+<td width="50"> <left> Begin </left> </td>
+<td width="50"> <left> Начало программы </left> </td>
+</tr>
+<tr>
+<td width="50"> <left> End. </left> </td>
+<td width="50"> <left> Конец программы </left> </td>
+</tr>
+</table> 
+
+<P><I>Нумерация битов</I></P>
+<table border=2 width="60%">
+<tr>
+<td height="35" width="20%"  rowspan="2" valign="bottom"> <center> Тип Real </center> </td>
+<td width="50" bgcolor="lightgray" colspan="2" valign="top"> <center> Знак мантиссы </center> </td>
+<td width="50" bgcolor="lightgray" colspan="3" valign="top"> <center> Мантисса числа </center> </td>
+<td width="50" bgcolor="lightgray" colspan="3" valign="top"> <center> Порядок числа </center> </td>
+</tr>
+<tr>
+<td width="50" colspan="2" valign="top"> <center> 47 </center> </td>
+<td width="50"> <center> 46 </center> </td>
+<td width="50"> <center> ... </center> </td>
+<td width="50"> <center> 8 </center> </td>
+<td width="50"> <center> 7 </center> </td>
+<td width="50"> <center> ... </center> </td>
+<td width="50"> <center> 0 </center> </td>
+</tr>
+</table>
+
+<P><I>Расписание поездов</I></P>
+<table border=2 width="50%">
+<tr>
+<td width="50" bgcolor="lightgray" rowspan="2" valign="bottom"> <center> Станция </center> </td>
+<td width="50" bgcolor="lightgray" colspan="3" valign="top"> <center> №1 "Россия" </center> </td>
+<td width="50" bgcolor="lightgray" colspan="3" valign="top"> <center> №25 "Сибиряк" </center> </td>
+</tr>
+<tr>
+<td width="50" bgcolor="lightgray"> <center> Приб. </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Стоянка </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Отпр. </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Приб. </td>
+<td width="50" bgcolor="lightgray"> <center> Стоянка </center> </td>
+<td width="50" bgcolor="lightgray"> <center> Отпр. </center> </td>
+</tr>
+<tr>
+<td width="50"> <center> Новосибирск </center> </td>
+<td width="50"> <center> 17:26 </center> </td>
+<td width="50"> <center> 20 </center> </td>
+<td width="50"> <center> 17:46 </center> </td>
+<td width="50"> <center>  </center> </td>
+<td width="50"> <center>  </center> </td>
+<td width="50"> <center> 9:00 </center> </td>
+</tr>
+</table>
+
+
+
+

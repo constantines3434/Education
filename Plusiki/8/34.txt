@@ -1,0 +1,350 @@
+#include <Windows.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <time.h>
+#include <string.h>
+#include <tchar.h>
+#include <strsafe.h>
+#include <dbt.h>
+#include <iostream>
+#include <wtsapi32.h>
+#include <Setupapi.h>
+#include <devguid.h>
+
+#define SERVICE_NAME "Consta_service"
+
+SERVICE_STATUS g_ServiceStatus = { 0 };
+SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
+HANDLE g_ServiceStopEvent = INVALID_HANDLE_VALUE;
+
+HDEVNOTIFY hDeviceNotify;
+
+GUID usbGUID = { 0x25dbce51, 0x6c8f, 0x4a72, 0x8a, 0x6d, 0xb5, 0x4c, 0x2b, 0x4f, 0xc8, 0x35 };
+
+VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv);
+DWORD WINAPI ServiceCtrlHandler(DWORD dwOpcode, DWORD evtype, PVOID evdata, PVOID Context);
+DWORD WINAPI ServiceWorkerThread(LPVOID lpParam);
+
+//Запись в журнал событий
+
+VOID SvcReportEvent(LPTSTR mes, LPTSTR mes1, LPTSTR mes2, LPTSTR mes3)
+{
+	HANDLE hEventSource;
+	LPCTSTR lpszStrings[5];
+
+	hEventSource = RegisterEventSource(NULL, L"Consta_service");
+
+	if (NULL != hEventSource)
+	{
+		lpszStrings[0] = L"From MyStupidService";
+		lpszStrings[1] = mes;
+		lpszStrings[2] = mes1;
+		lpszStrings[3] = mes2;
+		lpszStrings[4] = mes3;
+
+		ReportEvent(hEventSource, EVENTLOG_INFORMATION_TYPE, 0, 00, NULL, 5, 0, lpszStrings, NULL);
+
+		DeregisterEventSource(hEventSource);
+	}
+}
+
+//Установка службы
+
+VOID SvcInstall()
+{
+	SC_HANDLE schSCManager;
+	SC_HANDLE schService;
+
+	schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+
+	if (NULL == schSCManager)
+	{
+		printf("OpenSCManager failed (%d)\n", GetLastError());
+		return;
+	}
+
+	schService = CreateService(schSCManager, L"Consta_service", L"Consta_service", SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START,
+		SERVICE_ERROR_NORMAL, L"C:\\VS\\PR8\\x64\\Debug\\PR8.exe", NULL, NULL, NULL, NULL, NULL);
+
+	if (schService == NULL)
+	{
+		printf("CreateService failed (%d)\n", GetLastError());
+		CloseServiceHandle(schSCManager);
+		return;
+	}
+	else printf("Service installed successfully\n");
+
+	CloseServiceHandle(schService);
+	CloseServiceHandle(schSCManager);
+}
+
+//Удаление службы
+
+VOID __stdcall DoDeleteSvc()
+{
+	SC_HANDLE schSCManager;
+	SC_HANDLE schService;
+	SERVICE_STATUS ssStatus;
+
+	schSCManager = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS);
+
+	if (NULL == schSCManager)
+	{
+		printf("OpenSCManager failed (%d)\n", GetLastError());
+		return;
+	}
+
+	schService = OpenService(schSCManager, L"Consta_service", DELETE);
+
+	if (schService == NULL)
+	{
+		printf("OpenService failed (%d)\n", GetLastError());
+		CloseServiceHandle(schSCManager);
+		return;
+	}
+
+	if (!DeleteService(schService))
+	{
+		printf("DeleteService failed (%d)\n", GetLastError());
+	}
+	else printf("Service deleted successfully\n");
+
+	CloseServiceHandle(schService);
+	CloseServiceHandle(schSCManager);
+}
+
+//Регистрация подключения USB
+
+BOOL DoRegisterDeviceInterfaceToHwnd(IN GUID InterfaceClassGuid, OUT HDEVNOTIFY* hDeviceNotify)
+{
+	DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
+
+	ZeroMemory(&NotificationFilter, sizeof(NotificationFilter));
+	NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+	NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+	NotificationFilter.dbcc_classguid = InterfaceClassGuid;
+
+	*hDeviceNotify = RegisterDeviceNotification(g_StatusHandle, &NotificationFilter, DEVICE_NOTIFY_SERVICE_HANDLE | DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+
+	if (NULL == *hDeviceNotify)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+int _tmain(int argc, TCHAR* argv[])
+{
+	//Команды удаления и установки службы
+	if (lstrcmpW(argv[1], L"remove") == 0)
+	{
+		DoDeleteSvc();
+	}
+	if (lstrcmpW(argv[1], L"install") == 0)
+	{
+		SvcInstall();
+	}
+
+	SERVICE_TABLE_ENTRY ServiceTable[] =
+	{
+	{(LPWSTR)SERVICE_NAME, (LPSERVICE_MAIN_FUNCTION)ServiceMain},
+	{NULL, NULL}
+	};
+
+	if (StartServiceCtrlDispatcher(ServiceTable) == FALSE)
+	{
+		return GetLastError();
+	}
+	return 0;
+}
+
+
+VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
+{
+	DWORD Status =
+		E_FAIL;
+	g_StatusHandle = RegisterServiceCtrlHandlerEx((LPCWSTR)SERVICE_NAME, ServiceCtrlHandler, NULL);
+	DoRegisterDeviceInterfaceToHwnd(usbGUID, &hDeviceNotify);
+
+	if (g_StatusHandle == NULL)
+	{
+
+	}
+
+	ZeroMemory(&g_ServiceStatus, sizeof(g_ServiceStatus));
+	g_ServiceStatus.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
+	g_ServiceStatus.dwControlsAccepted = 0;
+	g_ServiceStatus.dwCurrentState = SERVICE_START_PENDING;
+	g_ServiceStatus.dwWin32ExitCode = 0;
+	g_ServiceStatus.dwServiceSpecificExitCode = 0;
+	g_ServiceStatus.dwCheckPoint = 0;
+
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
+	{
+
+	}
+
+	g_ServiceStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	if (g_ServiceStopEvent == NULL)
+	{
+
+		g_ServiceStatus.dwControlsAccepted = 0;
+		g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+		g_ServiceStatus.dwWin32ExitCode = GetLastError();
+		g_ServiceStatus.dwCheckPoint = 1;
+
+		if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
+		{
+
+		}
+	}
+
+	g_ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+	g_ServiceStatus.dwCurrentState = SERVICE_RUNNING;
+	g_ServiceStatus.dwWin32ExitCode = 0;
+	g_ServiceStatus.dwCheckPoint = 0;
+
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
+	{
+
+	}
+
+	HANDLE hThread = CreateThread(NULL, 0, ServiceWorkerThread, NULL, 0, NULL);
+
+	WaitForSingleObject(hThread, INFINITE);
+
+	CloseHandle(g_ServiceStopEvent);
+
+	g_ServiceStatus.dwControlsAccepted = 0;
+	g_ServiceStatus.dwCurrentState = SERVICE_STOPPED;
+	g_ServiceStatus.dwWin32ExitCode = 0;
+	g_ServiceStatus.dwCheckPoint = 3;
+
+	if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
+	{
+
+	}
+}
+
+//Работа с USB
+
+DWORD WINAPI ServiceCtrlHandler(DWORD dwOpcode, DWORD evtype, PVOID evdata, PVOID Context)
+{
+	switch (dwOpcode)
+	{
+	case SERVICE_CONTROL_DEVICEEVENT: {
+		PDEV_BROADCAST_DEVICEINTERFACE b = (PDEV_BROADCAST_DEVICEINTERFACE)evdata;
+		TCHAR strBuff[256];
+		DWORD bytesWritten;
+		SP_DEVINFO_DATA DeviceInfoData;
+
+		switch (evtype)
+		{
+		case DBT_DEVICEARRIVAL:
+		{
+			for (int i = 0; i < lstrlenW(b->dbcc_name); i++)
+			{
+
+				if (b->dbcc_name[i] == '#')
+				{
+					b->dbcc_name[i] = '/';
+				}
+			}
+			WCHAR VID[10] = { 0 };
+			WCHAR PID[10] = { 0 };
+			WCHAR GUID[40] = { 0 };
+
+			WCHAR* fullname = &b->dbcc_name[4];
+
+			HANDLE file = CreateFile(L"C:\\Users\\Home\\Desktop\\Plusiki\\8\\log.txt", GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, NULL, NULL);
+			WriteFile(file, &b->dbcc_name, lstrlenW(b->dbcc_name) * 2, &bytesWritten, NULL);
+
+			int tempGUIDpos = lstrlenW(fullname) - 37;
+
+			wcsncpy_s(VID, &fullname[8], 4);
+			wcsncpy_s(PID, &fullname[17], 4);
+			wcsncpy_s(GUID, &fullname[tempGUIDpos], 36);
+
+			WCHAR mes[100] = { 0 };
+			WCHAR tempmes1[100] = { 0 };
+			WCHAR tempmes2[100] = { 0 };
+			WCHAR tempmes3[100] = { 0 };
+			lstrcatW(mes, L"This USB was connected: ");
+			lstrcatW(tempmes1, L"VID = ");
+			lstrcatW(tempmes1, VID);
+			lstrcatW(tempmes2, L"PID = ");
+			lstrcatW(tempmes2, PID);
+			lstrcatW(tempmes3, L"GUID = ");
+			lstrcatW(tempmes3, GUID);
+			SvcReportEvent(mes, tempmes1, tempmes2, tempmes3);
+		}
+		break;
+		case DBT_DEVICEREMOVECOMPLETE:
+		{
+			for (int i = 0; i < lstrlenW(b->dbcc_name); i++)
+			{
+
+				if (b->dbcc_name[i] == '#')
+				{
+					b->dbcc_name[i] = '/';
+				}
+			}
+			WCHAR VID[10] = { 0 };
+			WCHAR PID[10] = { 0 };
+			WCHAR GUID[40] = { 0 };
+			WCHAR* fullname = &b->dbcc_name[4];
+
+			int tempGUIDpos = lstrlenW(fullname) - 37;
+
+			wcsncpy_s(VID, &fullname[8], 4);
+			wcsncpy_s(PID, &fullname[17], 4);
+			wcsncpy_s(GUID, &fullname[tempGUIDpos], 36);
+
+			WCHAR mes[100] = { 0 };
+			WCHAR tempmes1[100] = { 0 };
+			WCHAR tempmes2[100] = { 0 };
+			WCHAR tempmes3[100] = { 0 };
+
+			lstrcatW(mes, L"This USB was disconnected: ");
+			lstrcatW(tempmes1, L"VID = ");
+			lstrcatW(tempmes1, VID);
+			lstrcatW(tempmes2, L"PID = ");
+			lstrcatW(tempmes2, PID);
+			lstrcatW(tempmes3, L"GUID = ");
+			lstrcatW(tempmes3, GUID);
+			SvcReportEvent(mes, tempmes1, tempmes2, tempmes3);
+		}
+		break;
+		}
+	}
+									break;
+	case SERVICE_CONTROL_STOP:
+
+		if (g_ServiceStatus.dwCurrentState != SERVICE_RUNNING)
+			break;
+
+		g_ServiceStatus.dwControlsAccepted = 0;
+		g_ServiceStatus.dwCurrentState = SERVICE_STOP_PENDING;
+		g_ServiceStatus.dwWin32ExitCode = 0;
+		g_ServiceStatus.dwCheckPoint = 4;
+
+		if (SetServiceStatus(g_StatusHandle, &g_ServiceStatus) == FALSE)
+		{
+
+		}
+
+		SetEvent(g_ServiceStopEvent);
+		break;
+
+	default:
+		break;
+	}
+	return 0;
+}
+
+DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
+{
+	WaitForSingleObject(g_ServiceStopEvent, INFINITE);
+	return ERROR_SUCCESS;
+}

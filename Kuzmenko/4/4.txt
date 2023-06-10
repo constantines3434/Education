@@ -1,0 +1,58 @@
+#include <windows.h>
+#include <iostream>
+#include <tchar.h>
+#include <array>
+#include <stdio.h>
+#include <stdlib.h> 
+#include <iomanip>
+
+using namespace std;
+
+
+
+int main(int argc, TCHAR* argv[])
+{
+    double BAC, Comp, EV, PV, AC,
+        CV, SV, CPI, SPI, FB, FT, Time;
+
+    cout << "Введите BAC" <<endl; // 500 000
+    cin >> BAC;
+
+    cout << "Введите Comp" << endl; // 30 = 0.3
+    cin >> Comp;
+
+    Comp = Comp / 100; // 
+
+    EV = Comp * BAC;
+    cout << "EV = Comp * BAC = " << EV << endl; // 150 000
+    
+    cout << "Введите PV" << endl; // 300 000
+    cin >> PV;
+
+    cout << "Введите AC" << endl; // 400 000
+    cin >> AC;
+
+    CV = EV - AC;
+    cout << "CV = EV - AC = " << CV << endl; //-250 000
+    
+    SV = EV - PV;
+    cout << "SV = EV - PV ="<< SV << endl; // -150 000
+   
+    CPI = EV / AC;
+    cout << "CPI = EV / AC = " << CPI << endl; // 0.375
+    
+    SPI = EV / PV;
+    cout << "SPI = EV / PV = " << SPI << endl; //0.5
+    
+    FB = BAC / CPI;
+    cout << "FB = BAC / CPI = " << setprecision(10) << FB << endl; // 1 333 333.3
+    cout << "Введите Time" << endl; // 12
+    cin >> Time;
+
+
+    FT = Time / SPI;
+    cout << "FB = BAC / SPI = " << FT << endl; // 24
+
+    system("pause");
+
+}

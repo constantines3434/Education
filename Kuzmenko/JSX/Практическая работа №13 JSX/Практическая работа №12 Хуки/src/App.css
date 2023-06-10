@@ -1,0 +1,110 @@
+.wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 20px;
+  background-color: #667e85;
+}
+
+.wrapper h1 {
+  text-align: center;
+  width: 100%;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 92%;
+  height: 70px;
+  width: 500px;
+  text-align: center;
+  color: white;
+  border: solid grey 2px;
+  background: rgb(32, 42, 47);
+  margin: 10px;
+}
+
+.basket {
+  text-align: center;
+  background-color: rgb(101, 107, 130);
+  border: solid 2px black;
+  margin-left: 0%;
+  height: 150px;
+  width: 1000px;
+  align-content: center;
+}
+
+.button1 {
+  margin-top: -630px;
+  margin-left: 130px;
+  margin-right: 900px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}
+
+.button2 {
+  margin-top: -630px;
+  margin-left: 390px;
+  margin-right: 340px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}
+
+.button3 {
+  margin-top: -630px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}
+
+.button4 {
+  margin-top: -50px;
+  margin-left: 130px;
+  margin-right: 900px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}
+
+.button5 {
+  margin-top: -50px;
+  margin-left: 390px;
+  margin-right: 340px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}
+
+.button6 {
+  margin-top: -50px;
+  font-size: 1em;
+  border: solid black 1px;
+  background: none;
+  cursor: pointer;
+  background-color:azure;
+  height: 20px;
+  width: 40px;
+}

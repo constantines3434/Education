@@ -1,0 +1,197 @@
+#include <dirent.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <memory>
+#include <vector>
+#include <stdlib.h>
+#include <malloc.h>
+
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <limits.h>
+#include <errno.h>
+#include <pthread.h>
+#include <sys/mman.h>
+
+#define PATH "/home/consta/practice1/1/Test1/"
+
+#define BUFFER_SIZE 256
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <pthread.h>
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+
+bool is_pseudodirectory(struct dirent *ent)
+{
+    return strcmp(ent->d_name, (".")) == 0 || strcmp(ent->d_name, ("..")) == 0;
+}
+
+void get_old_name(char *path, struct dirent *ent, char *old_file_name)
+{
+    sprintf(old_file_name, "%s%s", path, ent->d_name);
+}
+
+void get_new_path(char *path, struct dirent *ent, char *new_path)
+{
+    sprintf(new_path, "%s%s%s", path, ent->d_name, "/");
+}
+
+bool is_directory(char *path_, struct stat *st)
+{
+    stat(path_, st);
+    return S_ISDIR(st->st_mode);
+}
+
+struct DirInfo
+{
+    int file_count;
+    char path[BUFFER_SIZE];
+};
+
+void UpdateMin(DirInfo *old_min, DirInfo *new_info)
+{
+    if (old_min->file_count <= new_info->file_count)
+        return;
+
+    old_min->file_count = new_info->file_count;
+    strcpy(old_min->path, new_info->path);
+}
+
+int fd[2];
+
+void count_files(char *path)
+{
+    DIR *dir = opendir(path);
+    DirInfo dir_info;
+    strcpy(dir_info.path, path);
+    dir_info.file_count = 0;
+
+    while (struct dirent *ent = readdir(dir))
+    {
+        struct stat sb;
+        char file_name[BUFFER_SIZE] = "";
+
+        get_old_name(path, ent, file_name);
+
+        if (stat(file_name, &sb) == -1)
+        {
+            continue;
+        }
+
+        if (is_pseudodirectory(ent))
+        {
+            continue;
+        }
+
+        if (!(sb.st_mode & S_IFREG))
+        {
+            continue;
+        }
+
+        if (!(sb.st_mode & S_IRUSR))
+        {
+            continue;
+        }
+        
+        // if ((sb.st_mode & S_IRWXU))
+        // {
+        //     continue;
+        // }
+
+         printf("файл на чтение");
+        dir_info.file_count += 1;
+    }
+    closedir(dir);
+
+    write(fd[1], &dir_info, sizeof(DirInfo));
+}
+
+void *rec_dir_helper(void *path);
+
+void rec_dir(char *path)
+{
+    count_files(path);
+    DIR *dir = opendir(path);
+
+    std::vector<std::unique_ptr<char[]>> paths;
+    std::vector<pthread_t> threads;
+
+    while (struct dirent *ent = readdir(dir))
+    {
+        struct stat sb;
+        char dir_path[BUFFER_SIZE] = "";
+        get_old_name(path, ent, dir_path);
+
+        if (!(is_directory(dir_path, &sb)))
+        {
+            continue;
+        }
+
+        if (is_pseudodirectory(ent))
+        {
+            continue;
+        }
+
+        paths.emplace_back(new char[BUFFER_SIZE]());
+        get_new_path(path, ent, paths.back().get());
+
+        threads.emplace_back();
+        pthread_create(&threads.back(), NULL, rec_dir_helper, (void *)paths.back().get());
+    }
+
+    for (int i = 0; i < threads.size(); i += 1)
+    {
+        pthread_join(threads[i], NULL);
+    }
+    closedir(dir);
+}
+
+void *rec_dir_helper(void *path)
+{
+    rec_dir((char *)path);
+    return NULL;
+}
+
+void *main_rec_dir(void *path)
+{
+    rec_dir((char *)path);
+    close(fd[1]);
+
+    return NULL;
+}
+
+int main(int argc, char *argv[])
+{
+    pipe(fd);
+
+    DirInfo answer;
+    answer.file_count = INT_MAX;
+    strcpy(answer.path, "default dir");
+
+    pthread_t rec_dir_thread;
+    pthread_create(&rec_dir_thread, NULL, main_rec_dir, (void *)PATH);
+
+    DirInfo buffer;
+    while (read(fd[0], &buffer, sizeof(DirInfo)))
+    {
+        UpdateMin(&answer, &buffer);
+    }
+
+    printf("%s\n", answer.path);
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="
+https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js
+"></script>
+
+</head>
+
+<body>
+<div class="background">
+    <image width="85" height="100" src="https://zvetnoe.ru/upload/catalog/2017/03/02ART40500194.jpg">
+        </image>
+        <button id="btnStart">вперёд</button>
+
+        <!-- <div class="run ning"> -->
+        <div class="d21"></div>
+        <div class="d36"></div>
+        <div class="d24"></div>
+        <div class="d37"></div>
+        <!-- </div> -->
+
+        <script>
+
+
+            const btnStart = document.querySelector('#btnStart');
+
+            btnStart.addEventListener('click', function () {
+                function random1() {
+                    anime({
+                        targets: '.d21',
+                        translateX: function () {
+                            return anime.random(0, 270);
+                        },
+                        translateY: function () {
+                            return anime.random(0, 270);
+                        },
+                        easing: 'easeInOutQuad',
+                        duration: 750,
+                        complete: random1
+                    });
+                }
+                function random2() {
+                    anime({
+                        targets: '.d36',
+                        translateX: function () {
+                            return anime.random(0, 500);
+                        },
+                        translateY: function () {
+                            return anime.random(0, 270);
+                        },
+                        easing: 'easeInOutQuad',
+                        duration: 750,
+                        complete: random2
+                    });
+                }
+                function random3() {
+                    anime({
+                        targets: '.d24',
+                        translateX: function () {
+                            return anime.random(0, 400);
+                        },
+                        translateY: function () {
+                            return anime.random(0, 270);
+                        },
+                        easing: 'easeInOutQuad',
+                        duration: 750,
+                        complete: random3
+                    });
+                }
+
+                function random4() {
+                    anime({
+                        targets: '.d37',
+                        translateX: function () {
+                            return anime.random(0, 100);
+                        },
+                        translateY: function () {
+                            return anime.random(0, 270);
+                        },
+                        easing: 'easeInOutQuad',
+                        duration: 750,
+                        complete: random4
+                    });
+                }
+
+                random1();
+                random2();
+                random3();
+                random4();
+            });
+
+
+        </script>
+        <h1>
+            №3 RANDOM animation
+        </h1>
+</div>
+</body>
+
+</html>

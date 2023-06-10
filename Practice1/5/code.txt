@@ -1,0 +1,206 @@
+	#include <Windows.h>
+	#include <malloc.h>
+	#include <string.h>
+	#include <tchar.h>
+	#include <cstdlib>
+	#include <iostream>
+	#include <string>
+	#include <string.h>
+	#include <stdio.h>
+	#include <vector>
+	#include <array>
+	using namespace std;
+	#if defined(_UNICODE)
+	#define _T(x) L##x
+	#else
+	#define _T(x) x
+	#endif
+	#define _CRT_SECURE_NO_WARNINGS
+
+	#define BUFFER_SIZE 260
+	#define DIRECTORY_NAME _T("C:\\Users\\Constantine\\Desktop\\Education\\Practice1\\2\\Test_2\\")
+	#define REC_COUNT 0
+	#define REC_DIRS  1
+
+	int empty_files_counter = 1; //итератор zero<индекс>
+
+	bool is_pseudodirectory(WIN32_FIND_DATA* wfd) {
+		return wcscmp(wfd->cFileName, _T(".")) == 0 || wcscmp(wfd->cFileName, _T("..")) == 0;
+	}
+
+	bool is_directory(WIN32_FIND_DATA* wfd) {
+		return (wfd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(wfd->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT);
+	}
+
+	void get_new_path(LPTSTR path, WIN32_FIND_DATA* wfd, LPTSTR new_path) {
+		wcscpy_s(new_path, BUFFER_SIZE, path);
+		wcscat_s(new_path, BUFFER_SIZE, wfd->cFileName);
+		wcscat_s(new_path, BUFFER_SIZE, L"\\");
+	}
+
+	void get_old_name(LPTSTR path, WIN32_FIND_DATA* wfd, LPTSTR old_file_name)
+	{
+		wcscpy_s(old_file_name, BUFFER_SIZE, path);
+		wcscat_s(old_file_name, BUFFER_SIZE, L"\\");
+		wcscat_s(old_file_name, BUFFER_SIZE, wfd->cFileName);
+	}
+
+	void get_new_name(LPTSTR path, WIN32_FIND_DATA* wfd, LPTSTR new_file_name)
+	{
+		TCHAR empty_file_number[BUFFER_SIZE];
+
+		//новое имя
+		wcscat_s(new_file_name, BUFFER_SIZE, path);
+		wcscat_s(new_file_name, BUFFER_SIZE, _T("zero"));
+		_itot_s(empty_files_counter, empty_file_number, 10); //в символы в 10-ой сс
+		wcscat_s(new_file_name, BUFFER_SIZE, (LPTSTR)empty_file_number); //значение
+		wcscat_s(new_file_name, BUFFER_SIZE, _T(".txt")); //расширение
+	}
+
+
+	HANDLE get_directory_iterator(LPTSTR path_, WIN32_FIND_DATA* wfd) {
+		TCHAR loc_path[BUFFER_SIZE];
+
+		wcscpy_s(loc_path, BUFFER_SIZE, path_);
+		wcscat_s(loc_path, BUFFER_SIZE, L"*");
+
+		HANDLE hdl = FindFirstFile(loc_path, wfd);
+		if (hdl == INVALID_HANDLE_VALUE)
+		{
+			FindClose(hdl);
+			exit(0);
+		}
+		return hdl;
+	}
+
+
+	int get_file_size(WIN32_FIND_DATA* wfd, LPTSTR path) {
+		TCHAR loc_path[BUFFER_SIZE] = _T("");
+		get_old_name(path, wfd, loc_path);
+		HANDLE file = CreateFile(loc_path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		int size = GetFileSize(file, NULL);
+		CloseHandle(file);
+
+		return size;
+	}
+
+	HANDLE mut = CreateMutex(NULL, FALSE, NULL);
+
+	bool rename_file(WIN32_FIND_DATA* wfd, LPTSTR path)
+	{
+		//переименовывание файла
+		//старое имя
+		TCHAR old_file_name[BUFFER_SIZE] = _T("");
+		get_old_name(path, wfd, old_file_name);
+
+		//новое имя
+		TCHAR new_file_name[BUFFER_SIZE] = _T("");
+		get_new_name(path, wfd, new_file_name);
+
+		return MoveFile(old_file_name, new_file_name); //типа переименовывает
+	}
+
+	//перебор файлов
+	void search_file(LPTSTR path) {
+
+		WIN32_FIND_DATA wfd = { 0 };
+		HANDLE hdl = get_directory_iterator(path, &wfd);
+
+		//поиск всех файлов в каталоге
+		do {
+			if (is_directory(&wfd))
+			{
+				continue;
+			}  // файл
+
+			if (is_pseudodirectory(&wfd))
+			{
+				continue;
+			}  // не псевдодиректория
+
+			if (!(get_file_size(&wfd, path) == 0)) {
+				continue;	
+			}  // нулевой размер
+
+			if (!(rename_file(&wfd, path)))
+			{
+				cout << "ошибка" << endl;
+				continue;
+			}
+			rename_file(&wfd, path);
+		
+			WaitForSingleObject(mut, INFINITE);
+			std::wcout << path << L"//" << wfd.cFileName << endl;
+			empty_files_counter++;
+			ReleaseMutex(mut);
+
+		} while (FindNextFile(hdl, &wfd) != NULL);
+		FindClose(hdl); //поиск окончен
+	}
+
+	//перебор каталогов
+	void rec_dir(LPTSTR path) //DIRECTORY_NAME
+	{
+		wcout << path << endl;
+
+		search_file(path); //изначально перебираю файлы в папке -> потом рассматриваю каталоги
+		WIN32_FIND_DATA wfd = { 0 };
+
+		HANDLE hdl = get_directory_iterator(path, &wfd);
+
+		std::vector<HANDLE> threads; //потоки
+		std::vector<DWORD> thrId; //идентификаторы потоков
+		std::vector<LPTSTR> paths;
+
+		do
+		{
+			//обработка каталогов -> потоки
+			//WaitForSingleObject(mut, INFINITE);
+			//Начало критической секции
+			if (!(is_directory(&wfd))) //если директория
+			{
+				continue;
+			} //директория
+
+			if (is_pseudodirectory(&wfd)) //не точки 
+			{
+				continue;
+			} //не псевдодиректория
+		
+			paths.push_back(new TCHAR[BUFFER_SIZE]()); //мусор в вектор
+		
+			get_new_path(path, &wfd, paths.back());
+
+			//thrId.emplace_back();
+				threads.push_back(CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)rec_dir,
+				(LPVOID)paths.back(), 0, NULL));
+			if (threads.back() == NULL)
+			{
+				cout << "ошибка создания потока" << endl;
+			}
+			//WaitForSingleObject(threads.back(), INFINITE);
+			// конец критической секции
+			//ReleaseMutex(mut);
+		} while (FindNextFile(hdl, &wfd));
+		FindClose(hdl); // поиск окончен
+	
+		if (threads.size() != 0)
+		{
+			WaitForMultipleObjects(threads.size(), threads.data(), TRUE, INFINITE);
+		
+		}
+
+		for (int a = 0; a < threads.size(); a++)
+		{
+			CloseHandle(threads[a]);
+		}
+	}
+
+	int wmain(int argc, wchar_t* argv[])
+	{
+		setlocale(LC_ALL, "Russian");
+
+		rec_dir((LPTSTR)DIRECTORY_NAME);
+		return 0;
+	}

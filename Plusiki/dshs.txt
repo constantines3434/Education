@@ -1,0 +1,26 @@
+#include <windows.h>
+#include <iostream>
+#include <tchar.h>
+#include <stdio.h>
+#include <conio.h>
+
+void SimpleThread(LPVOID param)
+{
+	while (true)
+	{
+		printf("Hello %d\n", *(int*)param);
+		Sleep(1000);
+	}
+}
+
+int main()
+{
+	int a = 1, b = 2;
+	 HANDLE hThread1 = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)SimpleThread, &a, NULL, NULL);
+	 HANDLE hThread2 = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)SimpleThread, &b, NULL, NULL);
+	 _getch();
+
+	 CriticalSe
+
+
+}

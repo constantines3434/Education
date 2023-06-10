@@ -1,0 +1,92 @@
+#include <dirent.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdlib.h>
+#include <malloc.h>
+
+#define PATH "/home/consta/practice1/1/Test1/"
+#define BUFFER_SIZE 256
+
+int empty_file_number = 1;
+
+bool is_pseudodirectory(struct dirent *ent)
+{
+    return strcmp(ent->d_name, (".")) == 0 || strcmp(ent->d_name, ("..")) == 0;
+}
+
+void get_old_name(char *path, struct dirent *ent, char *old_file_name)
+{
+    sprintf(old_file_name, "%s%s", path, ent->d_name);
+}
+
+void get_new_name(char *path, struct dirent *ent, char *new_file_name)
+{
+    sprintf(new_file_name, "%s%s%d%s",
+            path, "zero", empty_file_number, ".txt");
+}
+
+// переименовывание файла
+bool rename_file(struct dirent *ent, char *path)
+{
+    // старое имя
+    char old_file_name[BUFFER_SIZE] = "";
+    get_old_name(path, ent, old_file_name);
+
+    // новое имя
+    char new_file_name[BUFFER_SIZE] = "";
+    get_new_name(path, ent, new_file_name);
+
+     printf("Success");
+    // типа переименовывает
+    return rename(old_file_name, new_file_name);
+}
+
+void search_file(char *path)
+{
+    DIR *dir = opendir(path);
+    //printf("%s","0");
+    while (struct dirent *ent = readdir(dir))
+    {
+        struct stat sb;
+        char file_name[BUFFER_SIZE] = "";
+
+        get_old_name(path, ent, file_name);
+
+        //printf("%s","1");
+
+        if (stat(file_name, &sb) == -1) // если работает текущий файл записывается в sb
+        {
+            continue;
+        }
+        //printf("%s","2");
+        if ((sb.st_mode & S_IFMT) != S_IFREG) // если регулярный файл
+        {
+            continue;
+        }
+        //printf("%s","3");
+        if (is_pseudodirectory(ent))
+        {
+            continue;
+        }
+        //printf("%s","4");
+        if (sb.st_size != 0) // размер файла
+        {
+            continue;
+        }
+      //  printf("%s","5");
+        rename_file(ent, path);
+        empty_file_number++;
+       
+    }
+    closedir(dir);
+}
+
+int main(int argc, char *argv[])
+{   //printf("%s","-1");
+    search_file(PATH);
+    return 0;
+}

@@ -1,0 +1,83 @@
+index.css: .car-listing {
+  background-image: url("https://catherineasquithgallery.com/uploads/posts/2023-01/1674304549_catherineasquithgallery-com-p-vord-serii-fon-foto-135.jpg");
+  background-size: 100%;
+  padding: 1%;
+}
+
+.car-listing h1 {
+  font-size: 40px;
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-family: Arial;
+  text-align: center;
+  background: white;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.car-listing ul {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.car-listing li {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  margin: 10px;
+  padding: 10px;
+  width: 300px;
+}
+
+.car-listing li img {
+  width: 100%;
+}
+
+.car-listing .car-info {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.car-listing .car-info h2 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.car-listing .car-info p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.car-listing .car-info button {
+  background-color: rgb(132, 143, 218);
+  border: none;
+  border-radius: 5px;
+  color: #521919;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 10px;
+  width: 100%;
+}
+
+.car-listing .car-info button:hover {
+  background-color: #005E80;
+}
+
+.sms {
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  position: absolute;
+  right: 15px;
+  text-align: right;
+  color: rgb(180, 180, 215);
+  font-size: 14pt;
+}
+
+body {
+  background-color: rgb(102, 95, 95);
+  margin: 0;
+}

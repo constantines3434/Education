@@ -1,0 +1,178 @@
+#include <dirent.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string>
+#include <memory>
+#include <vector>
+#include <stdlib.h>
+#include <malloc.h>
+
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <limits.h>
+#include <errno.h>
+#include <pthread.h>
+#include <sys/mman.h>
+
+#define PATH "/home/consta/practice1/1/Test1/"
+#define BUFFER_SIZE 256
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
+void *create_shared_memory(size_t size)
+{
+    // Our memory buffer will be readable and writable:
+    int protection = PROT_READ | PROT_WRITE;
+
+    // The buffer will be shared (meaning other processes can access it), but
+    // anonymous (meaning third-party processes cannot obtain an address for it),
+    // so only this process and its children will be able to use it:
+    int visibility = MAP_SHARED | MAP_ANONYMOUS;
+
+    // The remaining parameters to `mmap()` are not important for this use case,
+    // but the manpage for `mmap` explains their purpose.
+    return mmap(NULL, size, protection, visibility, -1, 0);
+}
+
+bool is_pseudodirectory(struct dirent *ent)
+{
+    return strcmp(ent->d_name, (".")) == 0 || strcmp(ent->d_name, ("..")) == 0;
+}
+
+void get_old_name(char *path, struct dirent *ent, char *old_file_name)
+{
+    sprintf(old_file_name, "%s%s", path, ent->d_name);
+}
+
+void get_new_path(char *path, struct dirent *ent, char *new_path)
+{
+    sprintf(new_path, "%s%s%s", path, ent->d_name, "/");
+}
+
+bool is_directory(char *path_, struct stat *st)
+{
+    stat(path_, st);
+    return S_ISDIR(st->st_mode);
+}
+
+void UpdateMin(int *size1, int size2, char *path1, char *path2)
+{
+    if (*size1 <= size2)
+        return;
+
+    *size1 = size2;
+    strcpy(path1, path2);
+}
+
+int *min_count_file = (int *)create_shared_memory(4);
+char* dir_name = (char*)create_shared_memory(BUFFER_SIZE);
+
+// nya
+void search_file(char *path)
+{
+    DIR *dir = opendir(path);
+
+    int loc_count_file = 0;
+
+    while (struct dirent *ent = readdir(dir))
+    {
+        struct stat sb;
+        char file_name[BUFFER_SIZE] = "";
+
+        get_old_name(path, ent, file_name);
+
+        if (stat(file_name, &sb) == -1)
+        {
+            continue;
+        }
+
+        if (is_pseudodirectory(ent))
+        {
+            continue;
+        }
+
+        if (!(sb.st_mode & S_IFREG))
+        {
+            continue;
+        }
+
+        loc_count_file++;
+    }
+    closedir(dir);
+
+  //  printf("%d\n", loc_count_file);
+    UpdateMin(min_count_file, loc_count_file, dir_name, path);
+}
+
+void rec_dir(char *path) // DIRECTORY_NAME
+{
+    // printf("%s", "odin");
+    search_file(path);
+    DIR *dir = opendir(path);
+    std::vector<std::unique_ptr<char[]>> paths;
+    std::vector<int> procs;
+
+    while (struct dirent *ent = readdir(dir))
+    {
+        struct stat sb;
+        // printf("%s", "dva");
+        char dir_path[BUFFER_SIZE] = "";
+        get_old_name(path, ent, dir_path);
+
+        if (!(is_directory(dir_path, &sb)))
+        {
+            continue;
+        }
+        // printf("%s", "tri");
+        if (is_pseudodirectory(ent))
+        {
+            continue;
+        }
+        // printf("%s", "chert");
+        paths.emplace_back(new char[BUFFER_SIZE]());
+
+        get_new_path(path, ent, paths.back().get());
+
+        int pid = fork();
+        switch (pid)
+        {
+        case -1:
+            printf("Process error\n");
+            exit(1);
+        case 0:
+            rec_dir(paths.back().get());
+            exit(0);
+        default:
+            procs.push_back(pid);
+            break;
+        }
+    }
+
+    for (int i = 0; i < procs.size(); i += 1)
+    {
+        int status;
+        waitpid(procs[i], &status, 0);
+    }
+
+    closedir(dir);
+}
+
+int main(int argc, char *argv[])
+{
+    *min_count_file = INT_MAX;
+    rec_dir(PATH);
+    printf("%s\n", dir_name);
+    return 0;
+}

@@ -1,0 +1,10 @@
+1) паттерн builder c#
+2) mvc c#
+3) Domain Drive Development
+4) Model View Controller
+5) HTTP
+6) dynamic
+7) Постгрис
+
+
+MVC + Doker + PostgreSQL

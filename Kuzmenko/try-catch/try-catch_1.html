@@ -1,0 +1,40 @@
+
+<html>
+<head>
+    <link rel="stylesheet" href="try-catch.css">
+    <script src="math.js" type="text/javascript"></script>
+</head>
+<body>
+    <div class="proga">
+        <p><input id="a"></p>
+        <p><input id="b"></p>
+        <button id="result">result</button>
+    </div>
+</body>
+<script>
+    document.querySelector("#result").onclick = function ()
+     {
+        let a = parseFloat(document.getElementById("a").value);
+        let b = parseFloat(document.getElementById("b").value);
+
+       
+        try 
+        {
+              
+            let res =  a - b * 7 + Math.sqrt(169); // a - b * 7 + sqrt(169)
+            if (a < b)
+            {
+                throw new TypeError("a < b");
+            }
+        }
+        catch (e)
+        {
+            alert(e.name + " "+ e.message);
+        }
+        finally
+        {
+            alert("finally res = " + res);
+        }
+    }
+</script>
+</html>

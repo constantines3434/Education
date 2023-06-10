@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="
+https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js
+"></script>
+
+</head>
+
+<body>
+    <div class="background">
+        <image width="85" height="100" src="https://zvetnoe.ru/upload/catalog/2017/03/02ART40500194.jpg">
+        </image>
+        <button id="btnStart">вперёд</button>
+        <button id="btnSBack">назад</button>
+
+
+
+        <!-- <div class="run ning"> -->
+        <div class="d5"></div>
+        <div class="d7"></div>
+        <div class="d9"></div>
+        <div class="d11"></div>
+        <!-- </div> -->
+
+        <script>
+
+
+            const btnStart = document.querySelector('#btnStart');
+
+            btnStart.addEventListener('click', function () {
+                //var runninLogEl = document.querySelector('.el');
+
+                anime({
+                    targets: '.d5',
+                    translateX: 270,
+                    easing: 'easeInElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d7',
+                    translateX: 270,
+                    easing: 'easeOutElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d9',
+                    translateX: 270,
+                    easing: 'easeInOutElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d11',
+                    translateX: 270,
+                    easing: 'easeOutInElastic(1, .6)'
+                });
+
+
+            });
+
+            const btnSBack = document.querySelector('#btnSBack');
+
+            btnSBack.addEventListener('click', function () {
+                //var runninLogEl = document.querySelector('.el');
+
+                anime({
+                    targets: '.d5',
+                    translateX: -2,
+                    easing: 'easeInElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d7',
+                    translateX: -2,
+                    easing: 'easeOutElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d9',
+                    translateX: -2,
+                    easing: 'easeInOutElastic(1, .6)'
+                });
+
+                anime({
+                    targets: '.d11',
+                    translateX: -2,
+                    easing: 'easeOutInElastic(1, .6)'
+                });
+
+
+            });
+
+        </script>
+        <h1>
+            №2 ELASTIC
+        </h1>
+    </div>
+</body>
+
+</html>

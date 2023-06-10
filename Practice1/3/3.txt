@@ -1,0 +1,155 @@
+#include <Windows.h>
+#include <malloc.h>
+#include <string.h>
+#include <tchar.h>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <string.h>
+#include <stdio.h>
+using namespace std;
+#if defined(_UNICODE)
+#define _T(x) L##x
+#else
+#define _T(x) x
+#endif
+#define _CRT_SECURE_NO_WARNINGS
+
+#define BUFFER_SIZE 260
+#define DIRECTORY_NAME _T("C:\\Users\\Constantine\\Desktop\\Education\\Practice1\\2\\Test_2\\")
+
+int empty_files_counter = 1;
+
+bool is_pseudodirectory(WIN32_FIND_DATA* wfd) {
+	return wcscmp(wfd->cFileName, _T(".")) == 0 || wcscmp(wfd->cFileName, _T("..")) == 0;
+}
+
+bool is_directory(WIN32_FIND_DATA* wfd) {
+	return (wfd->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !(wfd->dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT);
+}
+
+void get_new_path(LPWSTR path, WIN32_FIND_DATA* wfd, LPWSTR new_path) {
+	wcscpy_s(new_path, BUFFER_SIZE, path);
+	wcscat_s(new_path, BUFFER_SIZE, wfd->cFileName);
+	wcscat_s(new_path, BUFFER_SIZE, L"\\");
+}
+
+HANDLE get_directory_iterator(WIN32_FIND_DATA* wfd) {
+	HANDLE hdl = FindFirstFile(_T("*"), wfd);
+
+	if (hdl == INVALID_HANDLE_VALUE)
+	{
+		FindClose(hdl);
+		exit(0);
+	}
+
+	return hdl;
+}
+
+int get_file_size(WIN32_FIND_DATA* wfd) {
+	HANDLE file = CreateFile(wfd->cFileName, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	int size = GetFileSize(file, NULL);
+	CloseHandle(file);
+
+	return size;
+}
+
+
+//перебор файлов
+void search_file() {
+	cout << "search_file работает" << endl;
+
+	WIN32_FIND_DATA wfd = { 0 };
+	HANDLE hdl = get_directory_iterator(&wfd);
+
+	//поиск всех файлов в каталоге
+	do {
+		if (is_directory(&wfd))
+		{
+			cout << "if 1 search_file сработал -> это папка" << endl;
+			continue;
+		}  // файл
+
+		if (is_pseudodirectory(&wfd))
+		{
+			cout << "if 2 search_file сработал -> это псевдодиректория" << endl;
+			continue;
+		}  // не псевдодиректория
+
+		if (!(get_file_size(&wfd) != 0)) {
+			cout << "if 3 search_file сработал -> размер больше нуля" << endl;
+			continue;
+		}  // нулевой размер
+		
+		//переименовывание файла
+		cout << "переименовывание = ";
+		wcout << "" << wfd.cFileName;
+				TCHAR new_file_name[BUFFER_SIZE] = _T("zero");
+				TCHAR empty_file_number[BUFFER_SIZE] = _T("");
+
+				_itot_s(empty_files_counter, empty_file_number, 10); //в символы в 10-ой сс
+				_tcscat_s(new_file_name, empty_file_number); //значение
+				_tcscat_s(new_file_name, _T(".txt")); //расширение
+
+				if (!(MoveFile(wfd.cFileName, new_file_name))) //типа переименовывает
+				{
+					continue;
+				}
+		empty_files_counter++;
+
+		cout << "		переименованный файл = ";
+		wcout << "" << wfd.cFileName << endl;;
+	} while (FindNextFile(hdl, &wfd) != NULL);
+	FindClose(hdl); //поиск окончен
+}
+
+
+
+
+//перебор каталогов
+void rec_dir(LPWSTR path) //DIRECTORY_NAME
+{
+	SetCurrentDirectory(path);
+	wcout << path << endl;
+	search_file(); //изначально перебираю файлы в папке -> потом рассматриваю каталоги
+	WIN32_FIND_DATA wfd = { 0 };
+	HANDLE hdl = FindFirstFile(_T("*"), &wfd);
+
+	if (hdl == INVALID_HANDLE_VALUE)
+	{
+		FindClose(hdl);
+		exit(0);
+	}
+
+	do
+	{
+		if (!(is_directory(&wfd))) //если директория
+		{
+			cout << "if 1 rec_dir работает = это папка " << endl;
+			continue;
+		} //директрия
+
+		if (is_pseudodirectory(&wfd)) //не точки 
+		{
+			cout << "if 2 rec_dir работает =  папка не . и не .. " << endl;
+			continue;
+		} //не псевдодиректория
+		
+		WCHAR new_path[BUFFER_SIZE];
+		get_new_path(path, &wfd, new_path);
+		rec_dir(new_path);
+		
+	} while (FindNextFile(hdl, &wfd));
+	FindClose(hdl); // поиск окончен
+}
+
+
+
+int wmain(int argc, wchar_t* argv[]) {
+	setlocale(LC_ALL, "Russian");
+
+	rec_dir((LPWSTR)DIRECTORY_NAME);
+
+	return 0;
+}
