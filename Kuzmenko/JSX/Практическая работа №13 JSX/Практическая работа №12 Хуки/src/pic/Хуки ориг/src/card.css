@@ -1,0 +1,19 @@
+.cardwrapper {
+    border: solid black 1px;
+    margin: 10px;
+    display: flex;
+    padding: 30px;
+    width: 300px;
+    background-color:aquamarine;
+}
+
+.cardwrapper button {
+    font-size: 1em;
+    border: solid rgb(0, 25, 248) 1px;
+    padding: 10;
+    background: none;
+    cursor: pointer;
+    margin: 10px 0;
+    background-color:rgb(16, 139, 240);
+}
+

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Practice8</string>
+    <string name="determine_button_text">Определить знак зодиака</string>
+    <string name="result_text">Ваш знак зодиака: %s</string>
+</resources>

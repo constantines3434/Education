@@ -1,0 +1,1 @@
+ReactDOM.render(<h1>was ist das</h1>, document.getElementById("app"));

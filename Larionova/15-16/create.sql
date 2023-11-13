@@ -17,20 +17,16 @@ LOG ON
     FILEGROWTH = 5MB );  
 GO  
 USE PR15_16;
-IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Departments')
-	DROP TABLE Departments
 IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Employees')
 	DROP TABLE Employees
+IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Departments')
+	DROP TABLE Departments
 IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Job_title')
 	DROP TABLE Job_title
 IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'States')
 	DROP TABLE States
-IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Positions')
-	DROP TABLE Positions
 IF EXISTS (SELECT * FROM SYSOBJECTS WHERE NAME = 'Destination')
 	DROP TABLE Destination
-
-
 CREATE TABLE Employees (
     EmployeeID int IDENTITY PRIMARY KEY,
     Surname varchar(50),
@@ -74,8 +70,6 @@ VALUES (1,'директор'),
 (3,'зам дир по вос  раб '),
 (4,'Ст бух'),
 (5,'Бух');
-
-
 CREATE TABLE States (
 	DepartmentID int,
 	Code_job_title int,
@@ -87,12 +81,11 @@ CREATE TABLE States (
 	ON DELETE CASCADE ON UPDATE CASCADE
 );
 INSERT INTO States (DepartmentID, Code_job_title, Count_of_people)
-VALUES (1, 1, 1),
-(2, 2, 1),
-(3, 3, 1),
-(4, 4, 1),
-(5, 5, 1);
-
+VALUES (1, 1, 10),
+(2, 2, 20),
+(3, 3, 30),
+(4, 4, 40),
+(5, 5, 50);
 CREATE TABLE Destination (
     Code_destination int IDENTITY PRIMARY KEY,
     EmployeeID int,

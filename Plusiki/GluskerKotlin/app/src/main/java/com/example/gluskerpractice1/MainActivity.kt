@@ -1,43 +1,21 @@
 package com.example.gluskerpractice1
 
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.gluskerpractice1.ui.theme.GluskerPractice1Theme
+import android.widget.ImageButton
+import android.widget.TextView
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
+   private lateinit var mHelloTextView: TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            GluskerPractice1Theme {
-                // A surface container using the 'background' color from the theme
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    Greeting("Android")
-                }
-            }
+        setContentView(R.layout.activity_main)
+        mHelloTextView = findViewById(R.id.textView)
+
+        val imageButton = findViewById<ImageButton>(R.id.imageButton)
+
+        imageButton.setOnClickListener {
+            mHelloTextView.setText("Hello Kitty")
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-            text = "Hello $name!",
-            modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GluskerPractice1Theme {
-        Greeting("Android")
     }
 }
